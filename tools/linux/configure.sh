@@ -15,7 +15,19 @@ BUILD_DIR=${BUILD_DIR:-$HOME/lx/build}
 BUILD_TYPE=${BUILD_TYPE:-RelWithDebInfo}
 QT_DIR=${QT_DIR:-$HOME/lx/qt}
 
-if [ -z "${CC:-}" ] && command -v clang > /dev/null && command -v clang++ > /dev/null; then
+# clang 18 and older crash on src/core/hle/service/nvdrv/devices/ioctl_serialization.h and reject
+# -mtls-dialect=gnu2, so take the newest clang-N >= 19, else an unversioned clang >= 19, else gcc.
+if [ -z "${CC:-}" ]; then
+    for v in 23 22 21 20 19; do
+        if command -v "clang-$v" > /dev/null && command -v "clang++-$v" > /dev/null; then
+            CC=clang-$v
+            CXX=clang++-$v
+            break
+        fi
+    done
+fi
+if [ -z "${CC:-}" ] && command -v clang++ > /dev/null &&
+    [ "$(clang -dumpversion | cut -d. -f1)" -ge 19 ]; then
     CC=clang
     CXX=clang++
 fi

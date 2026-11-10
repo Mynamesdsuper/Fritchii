@@ -25,7 +25,7 @@ apt_pkgs=(
     libopus-dev libasound2-dev ccache
     libxcb-cursor0 libxcb-icccm4 libxcb-image0
     libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xkb1
-    clang lld llvm gdb systemd-coredump shellcheck
+    clang-20 lld-20 clang lld llvm gdb systemd-coredump shellcheck
     vulkan-tools mesa-vulkan-drivers libvulkan1
     python3-venv curl unzip zip make bzip2
 )

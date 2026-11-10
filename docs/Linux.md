@@ -17,9 +17,12 @@ Arch and Fedora use the distro Qt (`SKIP_QT=1` does the same on Ubuntu).
 ## Build
 
 ```sh
-tools/linux/configure.sh      # ~/lx/build, clang + lld if present (else gcc), ccache
+tools/linux/configure.sh      # ~/lx/build, clang 19+ and lld if present (else gcc), ccache
 tools/linux/build.sh          # lichii and eden-cli with $(nproc) jobs
 ```
+
+clang 18 and older crash on `ioctl_serialization.h`; on Ubuntu 24.04 `install-deps.sh` adds
+`clang-20` from the distro repo.
 
 Environment overrides: `BUILD_DIR`, `BUILD_TYPE`, `QT_DIR`, `CC`/`CXX`, `JOBS`. Extra arguments
 go to `cmake` (configure) or `cmake --build` (build). Programs end up in `~/lx/build/bin/`.
