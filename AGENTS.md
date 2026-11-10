@@ -55,7 +55,8 @@ Use these before guessing. All are off unless the variable is set; pass them as 
 | Split GPU thread races | `EDEN_NX2_SPLIT_CHECK=1` | Reports scheduler use from the wrong thread. |
 | Upscaler and DLSS contracts | `EDEN_NX2_DLSS_CONTRACT_TRACE=1` | Inputs and outputs of replaced upscaler networks. |
 | Service calls | `EDEN_NX2_IPC_TRACE=1` | IPC command trace. |
-| Host crash (log just stops) | Windows minidump in `%LOCALAPPDATA%\CrashDumps\lichii.exe.<pid>.dmp` | Read the exception and stack with the `minidump` Python package, then symbolize with `llvm-symbolizer --obj=lichii.exe --inlines --relative-address <offset>` next to the build's `lichii.pdb`. |
+| Host crash on Linux (log just stops) | systemd-coredump: `coredumpctl gdb lichii` | `bt` / `thread apply all bt`; or `coredumpctl dump lichii -o core` and `gdb -batch -ex bt <build>/lichii core`. Symbolize `<module>+<offset>` stacks with `llvm-symbolizer --obj=<build>/lichii --inlines <offset>`. See `docs/Linux.md`. |
+| Host crash on Windows (log just stops) | Windows minidump in `%LOCALAPPDATA%\CrashDumps\lichii.exe.<pid>.dmp` | Read the exception and stack with the `minidump` Python package, then symbolize with `llvm-symbolizer --obj=lichii.exe --inlines --relative-address <offset>` next to the build's `lichii.pdb`. |
 
 ## How work is split
 
@@ -70,4 +71,5 @@ Use these before guessing. All are off unless the variable is set; pass them as 
 - Cloud machines build with clang and Ninja for compile and unit-test checks.
 - The build the owner tests runs on the owner's Windows PC (DESKTOP-4UD89UT, Ryzen 9 5900X), built with clang using 12 jobs (`cmake --build <dir> --parallel 12`).
 - On the PC the toolchain is clang-cl (LLVM 22) with the VS 2022 SDK, Qt 6.8.3 in `C:/lx/qt`, Ninja and sccache. Source is `C:/lx/src`, the persistent build dir is `C:/lx/build`, and `C:/lx/configure.sh` holds the configure flags. Build and package a fix with one command: `bash C:/lx/build-fix.sh <branch> <build-name> "<Game> - <fix>" ["ENV=VAL ..."] ["log filter"]`.
+- Linux (details in `docs/Linux.md`): `tools/linux/install-deps.sh` once, then `tools/linux/configure.sh` and `tools/linux/build.sh` (clang, Ninja, ccache, RelWithDebInfo, CI options; build dir `~/lx/build`). Debug build for a fix: `tools/linux/build-fix.sh <branch> <build-name> "<Game> - <fix>" ["ENV=VAL ..."] ["log filter"]` puts it in `~/lx/debug/<build>/` with a launcher `Lichii Debug - <Game> - <fix>` in `~/.local/share/applications/`, using the normal user data (`~/.local/share/eden`) and copying the log next to the build. From Windows, build inside WSL2 `Ubuntu-24.04`; WSLg Vulkan (`dzn`) does not count as a rendering test.
 - Every fix gets its own debug build on that PC in `C:\Users\Zortos\.capy\work\lichii-debug\<build>\` and a desktop shortcut `Lichii Debug - <Game> - <fix>` that launches it with the owner's existing user data and keeps the log next to the build, so the owner can run it and send the log back.

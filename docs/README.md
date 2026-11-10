@@ -11,6 +11,7 @@ This contains documentation created by developers, build instructions, guideline
 - **[Cross Compiling](./CrossCompile.md)**
 - **[Development Guidelines](./Development.md)**
 - **[Dependencies](./Deps.md)**
+- **[Linux builds and debugging](./Linux.md)**
 - **[Debug Guidelines](./Debug.md)**
   - **[RenderDoc](./Debug.md#renderdoc)**
 - **[CPM - CMake Package Manager](./CPMUtil.md)**
