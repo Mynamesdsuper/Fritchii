@@ -55,6 +55,8 @@ read -ra env_list <<< "$env_vars"
     printf 'filter=%q\n' "$log_filter"
     cat << 'EOF'
 here=$(cd "$(dirname "$0")" && pwd)
+# Ubuntu's soft core limit is 0, which makes systemd-coredump drop the core.
+ulimit -c unlimited 2> /dev/null || true
 log_dir=${XDG_DATA_HOME:-$HOME/.local/share}/eden/log
 if [ -n "$filter" ]; then "$here/lichii" -x "$filter" "$@"; else "$here/lichii" "$@"; fi
 status=$?
