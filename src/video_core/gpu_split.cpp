@@ -13,6 +13,10 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
+#elif defined(__linux__) && !defined(__ANDROID__)
+#include <dlfcn.h>
+#include <execinfo.h>
+#include <unistd.h>
 #endif
 #include <cstring>
 #include <string>
@@ -79,6 +83,28 @@ void GpuSplit::CheckOwner(const char* where) {
     }
     LOG_ERROR(HW_GPU, "GPU split owner check: {} on thread {} while the back runs; stack:{}",
               where, thread, stack);
+#elif defined(__linux__) && !defined(__ANDROID__)
+    if (!instance.back_running.load(std::memory_order_acquire) || on_back_thread) {
+        return;
+    }
+    static std::atomic<u32> reports{};
+    if (reports.fetch_add(1) >= 12) {
+        return;
+    }
+    std::string stack;
+    void* frames[40];
+    const int count = backtrace(frames, 40);
+    for (int i = 1; i < count; ++i) {
+        Dl_info info{};
+        const bool found = dladdr(frames[i], &info) != 0 && info.dli_fname != nullptr;
+        const char* name = found ? info.dli_fname : "?";
+        const char* base_name = std::strrchr(name, '/');
+        stack += fmt::format(" {}+{:#x}", base_name ? base_name + 1 : name,
+                             reinterpret_cast<uintptr_t>(frames[i]) -
+                                 reinterpret_cast<uintptr_t>(found ? info.dli_fbase : nullptr));
+    }
+    LOG_ERROR(HW_GPU, "GPU split owner check: {} on thread {} while the back runs; stack:{}",
+              where, gettid(), stack);
 #else
     (void)where;
 #endif
