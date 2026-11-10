@@ -27,7 +27,7 @@ apt_pkgs=(
     libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xkb1
     clang lld llvm gdb systemd-coredump shellcheck
     vulkan-tools mesa-vulkan-drivers libvulkan1
-    python3-venv curl unzip zip
+    python3-venv curl unzip zip make bzip2
 )
 pacman_pkgs=(
     base-devel boost catch2 cmake enet ffmpeg fmt git glslang libzip lz4 ninja nlohmann-json
@@ -57,6 +57,23 @@ else
     exit 1
 fi
 
+venv="$HOME/lx/aqt-venv"
+make_venv() {
+    [ -x "$venv/bin/pip" ] || python3 -m venv "$venv"
+}
+
+# CMakeLists.txt needs CMake 3.31+; Ubuntu 24.04 ships 3.28. Take a current one from PyPI and put
+# it in ~/.local/bin, which Ubuntu's ~/.profile adds to PATH.
+if ! printf '3.31\n%s\n' "$(cmake --version 2> /dev/null | sed -n '1s/[^0-9]*//p')" |
+    sort -V -C; then
+    make_venv
+    # CMake 4 drops support for the old cmake_minimum_required of some bundled externals.
+    "$venv/bin/pip" install --quiet --upgrade 'cmake>=3.31,<4'
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$venv/bin/cmake" "$venv/bin/ctest" "$venv/bin/cpack" "$HOME/.local/bin/"
+    echo "CMake $("$venv/bin/cmake" --version | head -n 1) linked into ~/.local/bin (log in again for PATH)"
+fi
+
 # Rolling distros ship a current Qt; Ubuntu 24.04 ships 6.4, so take the CI version.
 if [ "${SKIP_QT:-0}" = 1 ]; then
     exit 0
@@ -65,8 +82,7 @@ if [ -x "$QT_DIR/$QT_VERSION/gcc_64/bin/qmake" ]; then
     echo "Qt $QT_VERSION already in $QT_DIR"
     exit 0
 fi
-venv="$HOME/lx/aqt-venv"
-python3 -m venv "$venv"
+make_venv
 "$venv/bin/pip" install --quiet --upgrade aqtinstall
 "$venv/bin/aqt" install-qt linux desktop "$QT_VERSION" linux_gcc_64 -m qtcharts -O "$QT_DIR"
 echo "Qt $QT_VERSION installed in $QT_DIR/$QT_VERSION/gcc_64"
