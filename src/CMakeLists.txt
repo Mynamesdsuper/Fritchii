@@ -201,7 +201,12 @@ else()
     if (ARCHITECTURE_x86_64)
         add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-mcx16>)
         if (LINUX OR FREEBSD)
-            add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-mtls-dialect=gnu2>)
+            # clang accepts gnu2 on x86_64 only from version 19.
+            include(CheckCXXCompilerFlag)
+            check_cxx_compiler_flag(-mtls-dialect=gnu2 HAVE_MTLS_DIALECT_GNU2)
+            if (HAVE_MTLS_DIALECT_GNU2)
+                add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:-mtls-dialect=gnu2>)
+            endif()
         endif()
     endif()
 
