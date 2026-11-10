@@ -43,7 +43,7 @@ flags=(
     -DUSE_CCACHE=ON
 )
 
-qt_prefix=$(find "$QT_DIR" -maxdepth 3 -path '*/gcc_*64/bin/qmake' 2> /dev/null | sort -V | tail -n 1)
+qt_prefix=$(find "$QT_DIR" -maxdepth 4 -path '*/gcc_*64/bin/qmake' 2> /dev/null | sort -V | tail -n 1)
 if [ -n "$qt_prefix" ]; then
     flags+=("-DCMAKE_PREFIX_PATH=${qt_prefix%/bin/qmake}")
 fi
