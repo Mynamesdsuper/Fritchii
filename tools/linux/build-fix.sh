@@ -43,6 +43,10 @@ out="$DEBUG_ROOT/$name"
 mkdir -p "$out"
 # Unstripped, so gdb and llvm-symbolizer work on the copy.
 cp "$BUILD_DIR/bin/lichii" "$BUILD_DIR/bin/eden-cli" "$out/"
+# Lichii reads its default switches from next to the executable.
+if [ -f "$BUILD_DIR/bin/nx2_switches.txt" ]; then
+    cp "$BUILD_DIR/bin/nx2_switches.txt" "$out/"
+fi
 git -C "$SRC_DIR" rev-parse HEAD > "$out/commit.txt"
 
 # Env vars are split on spaces like the Windows script.
